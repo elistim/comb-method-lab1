@@ -2,23 +2,43 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "default"],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure the project using CMake."
+        },
+        {
             "label": "build",
             "type": "shell",
-            "command": "C:\\\\msys64\\\\mingw64\\\\bin\\\\mingw32-make.exe",
+            "command": "cmake",
+            "args": ["--build", "--preset", "default"],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": ["$gcc"],
-            "detail": "Build the C project using the Makefile."
+            "detail": "Build the C project using CMake."
         },
         {
             "label": "clean",
             "type": "shell",
-            "command": "C:\\\\msys64\\\\mingw64\\\\bin\\\\mingw32-make.exe clean",
+            "command": "cmake",
+            "args": ["--build", "build", "--target", "clean"],
             "group": "build",
             "problemMatcher": [],
             "detail": "Clean the build artifacts."
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "${workspaceFolder}\\build\\my_program.exe",
+            "group": "test",
+            "problemMatcher": [],
+            "detail": "Run the compiled program.",
+            "dependsOn": "build"
         }
     ]
 }
