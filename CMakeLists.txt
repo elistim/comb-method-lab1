@@ -16,6 +16,10 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Source files
 set(SOURCES
+    src/app.c
+    src/expression.c
+    src/function_provider.c
+    src/solver.c
     src/main.c
 )
 

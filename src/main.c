@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include "main.h"
+#include "app.h"
 
-int main() {
-    printf("Hello, Elisey!\n");
-    return 0;
+int main(void) {
+    return run_application();
 }

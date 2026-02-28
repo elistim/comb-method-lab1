@@ -40,3 +40,11 @@ This will execute the program and print "Hello, World!" to the console.
 ## Contributing
 
 Feel free to contribute to this project by submitting issues or pull requests.
+
+## Build
+```PowerShell
+rm -r build
+$env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
+cmake --preset default
+cmake --build --preset default
+```

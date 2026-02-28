@@ -39,6 +39,15 @@
             "problemMatcher": [],
             "detail": "Run the compiled program.",
             "dependsOn": "build"
+        },
+        {
+            "label": "debug-build",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "--preset", "debug"],
+            "group": "build",
+            "problemMatcher": ["$gcc"],
+            "detail": "Build Debug preset (build-debug/my_program.exe)"
         }
     ]
 }
