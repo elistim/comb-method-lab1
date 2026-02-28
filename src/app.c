@@ -7,7 +7,7 @@
 #endif
 #include "app.h"
 #include "function_provider.h"
-#include "main.h"
+#include "solver.h"
 
 #define MAX_EXPR_LEN 256
 

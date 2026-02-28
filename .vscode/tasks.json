@@ -46,8 +46,19 @@
             "command": "cmake",
             "args": ["--build", "--preset", "debug"],
             "group": "build",
+            "dependsOn": ["debug-configure"],
+            "dependsOrder": "sequence",
             "problemMatcher": ["$gcc"],
             "detail": "Build Debug preset (build-debug/my_program.exe)"
+        },
+        {
+            "label": "debug-configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "debug"],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Configure Debug preset (build-debug)"
         }
     ]
 }
