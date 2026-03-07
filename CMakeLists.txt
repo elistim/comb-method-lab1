@@ -16,11 +16,15 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Source files
 set(SOURCES
-    src/app.c
-    src/expression.c
-    src/function_provider.c
-    src/solver.c
     src/main.c
+    src/app.c
+    src/tasks/task_6_1/task_6_1.c
+    src/tasks/task_6_1/expression_6_1.c
+    src/tasks/task_6_1/function_provider_6_1.c
+    src/tasks/task_6_1/solver_6_1.c
+    src/tasks/task_6_2/task_6_2_1.c
+    src/tasks/task_6_2/task_6_2_2.c
+    src/tasks/task_6_2/task_6_2_3.c
 )
 
 # Create executable

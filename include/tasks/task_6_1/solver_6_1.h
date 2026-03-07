@@ -1,5 +1,5 @@
-#ifndef _SOLVER_H
-#define _SOLVER_H
+#ifndef SOLVER_6_1_H
+#define SOLVER_6_1_H
 
 typedef struct {
     double left;
@@ -20,9 +20,10 @@ int separate_roots(double (*func)(double), double a, double b, double step,
                    RootInterval *intervals, int max_count,
                    unsigned long *f_calls);
 
+/* Комбинированный метод (Ньютона + хорд) для задания 6.1. */
 void combined_method(double (*func)(double), double (*func_prime)(double),
                      double (*func_double_prime)(double), double a, double b,
                      double eps1, double eps2, double *root,
                      MethodStats *stats);
 
-#endif /* _SOLVER_H */
+#endif // SOLVER_6_1_H

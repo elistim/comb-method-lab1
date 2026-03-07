@@ -1,7 +1,7 @@
 #include <math.h>
 #include <string.h>
-#include "expression.h"
-#include "function_provider.h"
+#include "tasks/task_6_1/expression_6_1.h"
+#include "tasks/task_6_1/function_provider_6_1.h"
 
 #define MAX_EXPR_LEN 256
 

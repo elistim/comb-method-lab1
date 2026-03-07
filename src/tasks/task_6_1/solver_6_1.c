@@ -1,6 +1,6 @@
 #include <math.h>
 #include <string.h>
-#include "solver.h"
+#include "tasks/task_6_1/solver_6_1.h"
 
 typedef struct {
     double left;

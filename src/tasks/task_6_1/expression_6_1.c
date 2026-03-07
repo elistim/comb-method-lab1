@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "expression.h"
+#include "tasks/task_6_1/expression_6_1.h"
 
 typedef struct {
     const char *s;
