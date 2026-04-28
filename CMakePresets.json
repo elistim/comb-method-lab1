@@ -2,9 +2,17 @@
   "version": 3,
   "configurePresets": [
     {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "default",
-      "description": "Default build using MinGW Makefiles",
-      "generator": "MinGW Makefiles",
+      "inherits": "base",
+      "description": "Release build using Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
@@ -12,11 +20,20 @@
     },
     {
       "name": "debug",
-      "description": "Debug build using MinGW Makefiles",
-      "generator": "MinGW Makefiles",
+      "inherits": "base",
+      "description": "Debug build using Ninja",
       "binaryDir": "${sourceDir}/build-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "mingw",
+      "description": "Release build using MinGW Makefiles",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build-mingw",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
@@ -28,6 +45,10 @@
     {
       "name": "debug",
       "configurePreset": "debug"
+    },
+    {
+      "name": "mingw",
+      "configurePreset": "mingw"
     }
   ]
 }

@@ -1,50 +1,48 @@
-# My C Project
+# CMake Build Notes
 
-This project is a simple C application that demonstrates the basic structure of a C program. It includes a main function that prints "Hello, World!" to the console.
+The project uses CMake presets for configuration and build.
 
-## Project Structure
+## Requirements
 
-```
-my-c-project
-├── src
-│   └── main.c        # Contains the main function
-├── include
-│   └── main.h        # Header file for function declarations
-├── Makefile           # Build instructions
-├── .vscode
-│   └── tasks.json     # VS Code tasks configuration
-├── .gitignore         # Git ignore file
-└── README.md          # Project documentation
-```
+You need:
 
-## Building the Project
+- `cmake`
+- `ninja`
+- one C compiler:
+  - MSVC from Visual Studio Build Tools
+  - or GCC from MinGW/MSYS2
+  - or Clang/LLVM
 
-To build the project, you can use the provided Makefile. Open a terminal in the project directory and run:
+## Presets
 
-```
-make
-```
-
-This will compile the source files and create the executable.
-
-## Running the Application
-
-After building the project, you can run the application with the following command:
-
-```
-./main
-```
-
-This will execute the program and print "Hello, World!" to the console.
-
-## Contributing
-
-Feel free to contribute to this project by submitting issues or pull requests.
+- `default`: Release build with `Ninja`
+- `debug`: Debug build with `Ninja`
+- `mingw`: Release build with `MinGW Makefiles`
 
 ## Build
-```PowerShell
-rm -r build
-$env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
+
+If the compiler is already available in your shell:
+
+```powershell
 cmake --preset default
 cmake --build --preset default
+```
+
+## Windows Examples
+
+### MSVC
+
+Run the commands from `x64 Native Tools Command Prompt for VS` or from a PowerShell session where the MSVC environment is loaded.
+
+```powershell
+cmake --preset default
+cmake --build --preset default
+```
+
+### MSYS2 / MinGW
+
+```powershell
+$env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
+cmake --preset mingw
+cmake --build --preset mingw
 ```

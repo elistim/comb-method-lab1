@@ -5,8 +5,12 @@ project(my_program C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Set compiler flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+# Set compiler warnings for the active toolchain
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall)
+endif()
 
 # Set output directory for built executables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
