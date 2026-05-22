@@ -56,14 +56,48 @@ static void calc_residual(const double a[N][N], const double b[N],
     }
 }
 
+static double calc_seidel_q_inf(const double a[N][N]) {
+    double b_iter[N][N] = {{0.0}};
+    double q = 0.0;
+    int col = 0;
+    int i = 0;
+    int j = 0;
+
+    for (col = 0; col < N; col++) {
+        for (i = 0; i < N; i++) {
+            double sum = (col > i) ? -a[i][col] : 0.0;
+
+            for (j = 0; j < i; j++) {
+                sum -= a[i][j] * b_iter[j][col];
+            }
+
+            b_iter[i][col] = sum / a[i][i];
+        }
+    }
+
+    for (i = 0; i < N; i++) {
+        double row_sum = 0.0;
+        for (j = 0; j < N; j++) {
+            row_sum += fabs(b_iter[i][j]);
+        }
+        if (row_sum > q) {
+            q = row_sum;
+        }
+    }
+
+    return q;
+}
+
 static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
                         double eps, int max_iter, int *iterations_out,
-                        double *last_delta_out, double *residual_out) {
+                        double *last_delta_out, double *residual_out,
+                        double *error_estimate_out) {
     int iter = 0;
     int i = 0;
     int j = 0;
     double x_prev[N] = {0.0};
     double residual_vec[N] = {0.0};
+    double q = calc_seidel_q_inf(a);
 
     for (i = 0; i < N; i++) {
         if (fabs(a[i][i]) < 1e-15) {
@@ -94,14 +128,28 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
             }
         }
 
+        calc_residual(a, b, x, residual_vec, residual_out);
+        *error_estimate_out = NAN;
+        if (q < 1.0) {
+            *error_estimate_out = q / (1.0 - q) * max_delta;
+        }
+
         printf("Iteration %4d: [", iter);
         for (i = 0; i < N; i++) {
             printf("% .10f%s", x[i], (i + 1 < N) ? ", " : "");
         }
         printf("]\n");
+        printf("  max|dx| = %.12e, ||r||_inf = %.12e", max_delta,
+               *residual_out);
+        if (isfinite(*error_estimate_out)) {
+            printf(", error_est <= %.12e\n", *error_estimate_out);
+        } else {
+            printf(", error_est: q=%.6f >= 1\n", q);
+        }
 
-        calc_residual(a, b, x, residual_vec, residual_out);
-        if (max_delta < eps && *residual_out < eps) {
+        if (((isfinite(*error_estimate_out) && *error_estimate_out < eps) ||
+             (!isfinite(*error_estimate_out) && max_delta < eps)) &&
+            *residual_out < eps) {
             *iterations_out = iter;
             *last_delta_out = max_delta;
             return 1;
@@ -111,6 +159,7 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
     *iterations_out = max_iter;
     *last_delta_out = 0.0;
     calc_residual(a, b, x, residual_vec, residual_out);
+    *error_estimate_out = NAN;
     return 0;
 }
 
@@ -128,6 +177,8 @@ int run_task_6_2_1(void) {
     double x[N] = {0.0};
     double residual_inf_norm = 0.0;
     double last_delta = 0.0;
+    double error_estimate = NAN;
+    double q_inf = 0.0;
     double residual_vec[N] = {0.0};
     double eps = 1e-8;
     int converged = 0;
@@ -145,9 +196,16 @@ int run_task_6_2_1(void) {
         printf("Warning: matrix has no strict diagonal dominance.\n");
         printf("Seidel convergence is not guaranteed.\n");
     }
+    q_inf = calc_seidel_q_inf(a);
+    printf("||B_Seidel||_inf = %.12e\n", q_inf);
+    if (q_inf < 1.0) {
+        printf("A posteriori error estimate: q/(1-q)*||x(k)-x(k-1)||_inf\n");
+    } else {
+        printf("A posteriori estimate by ||B||_inf is not applicable because q >= 1.\n");
+    }
 
     converged = gauss_seidel(a, b, x, eps, max_iter, &iterations, &last_delta,
-                             &residual_inf_norm);
+                             &residual_inf_norm, &error_estimate);
 
     calc_residual(a, b, x, residual_vec, &residual_inf_norm);
 
@@ -170,6 +228,11 @@ int run_task_6_2_1(void) {
 
     printf("||r||_inf = %.12e\n", residual_inf_norm);
     printf("Last max|x(k)-x(k-1)| = %.12e\n", last_delta);
+    if (isfinite(error_estimate)) {
+        printf("Theoretical error estimate <= %.12e\n", error_estimate);
+    } else {
+        printf("Theoretical error estimate by q/(1-q) is not available.\n");
+    }
 
     return 0;
 }

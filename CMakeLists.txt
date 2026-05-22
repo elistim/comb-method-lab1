@@ -26,6 +26,7 @@ set(SOURCES
     src/tasks/task_6_1/expression_6_1.c
     src/tasks/task_6_1/function_provider_6_1.c
     src/tasks/task_6_1/solver_6_1.c
+    src/tasks/task_6_2/khaletsky.c
     src/tasks/task_6_2/task_6_2_1.c
     src/tasks/task_6_2/task_6_2_2.c
     src/tasks/task_6_2/task_6_2_3.c

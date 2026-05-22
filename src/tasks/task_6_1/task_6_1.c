@@ -10,6 +10,7 @@
 #include "tasks/task_6_1/solver_6_1.h"
 
 #define MAX_EXPR_LEN 256
+#define VARIANT_SPLIT_STEP 1.0
 
 static double now_seconds(void) {
 #ifdef _WIN32
@@ -40,7 +41,7 @@ static int read_expression_line(const char *prompt, char *dst, size_t dst_size) 
 int run_task_6_1(void) {
     double a = -5.0;
     double b = 5.0;
-    double split_step = 0.25;
+    const double split_step = VARIANT_SPLIT_STEP;
     double eps1 = 1e-8;
     double eps2 = 1e-8;
     int input_mode = 1;
@@ -50,6 +51,7 @@ int run_task_6_1(void) {
     char expr_fpp[MAX_EXPR_LEN];
     RootInterval intervals[64];
     unsigned long split_f_calls = 0;
+    int split_steps = 0;
 
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
@@ -72,28 +74,29 @@ int run_task_6_1(void) {
     printf("f(x): %s\n", get_function_description());
     printf("Режим ввода: 1 - стандартные параметры, 2 - ввод с консоли: ");
     if (scanf("%d", &input_mode) == 1 && input_mode == 2) {
-        printf("Введите a b шаг_отделения eps1 eps2: ");
-        if (scanf("%lf %lf %lf %lf %lf", &a, &b, &split_step, &eps1, &eps2) != 5) {
+        printf("Введите a b eps1 eps2: ");
+        if (scanf("%lf %lf %lf %lf", &a, &b, &eps1, &eps2) != 4) {
             printf("Ошибка ввода. Используются стандартные параметры.\n");
             a = -5.0;
             b = 5.0;
-            split_step = 0.25;
             eps1 = 1e-8;
             eps2 = 1e-8;
         }
     }
 
-    if (b <= a || split_step <= 0.0 || eps1 <= 0.0 || eps2 <= 0.0) {
+    if (b <= a || eps1 <= 0.0 || eps2 <= 0.0) {
         printf("Некорректные параметры. Используются стандартные параметры.\n");
         a = -5.0;
         b = 5.0;
-        split_step = 0.25;
         eps1 = 1e-8;
         eps2 = 1e-8;
     }
 
     printf("Интервал: [%.3f, %.3f], шаг отделения: %.3f\n", a, b, split_step);
     printf("Точность: eps1 = %.1e, eps2 = %.1e\n\n", eps1, eps2);
+
+    split_steps = (int)ceil((b - a) / split_step);
+    printf("Количество шагов отделения корней: %d\n", split_steps);
 
     int roots_count = separate_roots(
         f, a, b, split_step, intervals,
@@ -129,15 +132,19 @@ int run_task_6_1(void) {
         printf("Корень #%d\n", i + 1);
         printf("  Отрезок: [%.10f, %.10f]\n", intervals[i].left, intervals[i].right);
         if (stats.converged) {
-            double fr = f(root);
-            total_f++;
             printf("  ξ = %.12f\n", root);
-            printf("  |f(ξ)| = %.3e\n", fabs(fr));
+            printf("  |f(ξ)| = %.3e\n", stats.residual_abs);
             printf("  Итерации n = %d\n", stats.iterations);
-            printf("  Вызовы: f=%lu, f'=%lu, f''=%lu\n", stats.f_calls, stats.fp_calls,
-                   stats.fpp_calls);
+            printf("  Вычисления функций при уточнении: f=%lu, f'=%lu, f''=%lu\n",
+                   stats.f_calls, stats.fp_calls, stats.fpp_calls);
             printf("  Время: %.9f сек\n", elapsed);
-            printf("  Последний шаг |x_n - x_(n-1)| = %.3e\n", stats.last_dx);
+            if (isfinite(stats.last_dx)) {
+                printf("  Последний шаг |x_n - x_(n-1)| = %.3e\n",
+                       stats.last_dx);
+            } else {
+                printf("  Последний шаг |x_n - x_(n-1)| = не требуется\n");
+            }
+            printf("  Погрешность по аргументу <= %.3e\n", stats.argument_error);
             if (isfinite(stats.alpha)) {
                 printf("  Параметр сходимости alpha = %.6f\n", stats.alpha);
             } else {
@@ -153,7 +160,8 @@ int run_task_6_1(void) {
     }
 
     printf("ИТОГО\n");
-    printf("  Суммарные вызовы: f=%lu, f'=%lu, f''=%lu\n", total_f, total_fp, total_fpp);
+    printf("  Шаги отделения корней: %d\n", split_steps);
+    printf("  Суммарные вычисления функций: f=%lu, f'=%lu, f''=%lu\n", total_f, total_fp, total_fpp);
     printf("  Суммарное время: %.9f сек\n", total_time);
     return 0;
 }

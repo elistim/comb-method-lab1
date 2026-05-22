@@ -46,3 +46,19 @@ $env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH
 cmake --preset mingw
 cmake --build --preset mingw
 ```
+
+## Report Checklist
+
+The repository contains program sources only; prepare the lab report as a
+separate document according to the TUSUR standard and the UMP structure.
+
+Recommended report structure:
+
+- title page;
+- task statement and variant data;
+- brief theory for each method;
+- algorithm descriptions or block diagrams;
+- program listing or key fragments;
+- calculation results with intermediate iterations;
+- accuracy and residual estimates in scientific notation;
+- conclusion.

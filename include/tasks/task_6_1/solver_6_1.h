@@ -13,6 +13,8 @@ typedef struct {
     unsigned long fpp_calls;
     double alpha;
     double last_dx;
+    double argument_error;
+    double residual_abs;
     int converged;
 } MethodStats;
 
