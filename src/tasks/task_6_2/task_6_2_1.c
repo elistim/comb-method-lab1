@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include "scientific_format.h"
 #include "tasks/task_6_2/task_6_2_1.h"
 
 #define N 5
@@ -139,10 +140,14 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
             printf("% .10f%s", x[i], (i + 1 < N) ? ", " : "");
         }
         printf("]\n");
-        printf("  max|dx| = %.12e, ||r||_inf = %.12e", max_delta,
-               *residual_out);
+        printf("  max|dx| = ");
+        print_number_power10(max_delta, 12);
+        printf(", max|r_i| = ");
+        print_number_power10(*residual_out, 12);
         if (isfinite(*error_estimate_out)) {
-            printf(", error_est <= %.12e\n", *error_estimate_out);
+            printf(", error_est <= ");
+            print_number_power10(*error_estimate_out, 12);
+            printf("\n");
         } else {
             printf(", error_est: q=%.6f >= 1\n", q);
         }
@@ -189,7 +194,9 @@ int run_task_6_2_1(void) {
     printf("Enter eps (default 1e-8): ");
     if (scanf("%lf", &eps) != 1 || eps <= 0.0) {
         eps = 1e-8;
-        printf("Invalid input, using eps = %.1e\n", eps);
+        printf("Invalid input, using eps = ");
+        print_number_power10(eps, 1);
+        printf("\n");
     }
 
     if (!is_strict_diagonal_dominance(a)) {
@@ -197,7 +204,9 @@ int run_task_6_2_1(void) {
         printf("Seidel convergence is not guaranteed.\n");
     }
     q_inf = calc_seidel_q_inf(a);
-    printf("||B_Seidel||_inf = %.12e\n", q_inf);
+    printf("max row sum of B_Seidel = ");
+    print_number_power10(q_inf, 12);
+    printf("\n");
     if (q_inf < 1.0) {
         printf("A posteriori error estimate: q/(1-q)*||x(k)-x(k-1)||_inf\n");
     } else {
@@ -223,13 +232,20 @@ int run_task_6_2_1(void) {
 
     printf("\nResidual vector r = A*x - b:\n");
     for (i = 0; i < N; i++) {
-        printf("r%d = %.12e\n", i + 1, residual_vec[i]);
+        printf("r%d = ", i + 1);
+        print_number_power10(residual_vec[i], 12);
+        printf("\n");
     }
 
-    printf("||r||_inf = %.12e\n", residual_inf_norm);
-    printf("Last max|x(k)-x(k-1)| = %.12e\n", last_delta);
+    printf("max|r_i| = ");
+    print_number_power10(residual_inf_norm, 12);
+    printf("\nLast max|x(k)-x(k-1)| = ");
+    print_number_power10(last_delta, 12);
+    printf("\n");
     if (isfinite(error_estimate)) {
-        printf("Theoretical error estimate <= %.12e\n", error_estimate);
+        printf("Theoretical error estimate <= ");
+        print_number_power10(error_estimate, 12);
+        printf("\n");
     } else {
         printf("Theoretical error estimate by q/(1-q) is not available.\n");
     }

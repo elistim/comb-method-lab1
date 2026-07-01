@@ -209,6 +209,23 @@ static int run_combined_iteration(double (*func)(double),
     x_newton = x0 - f0 / fp0;
     x_chord = state->a - state->fa * (state->b - state->a) / denom;
 
+    if (x_newton < state->a || x_newton > state->b) {
+        newton_from_left = !newton_from_left;
+        if (newton_from_left) {
+            x0 = state->a;
+            f0 = state->fa;
+        } else {
+            x0 = state->b;
+            f0 = state->fb;
+        }
+        fp0 = func_prime(x0);
+        stats->fp_calls++;
+        if (!isfinite(fp0) || fabs(fp0) < tiny) {
+            return 0;
+        }
+        x_newton = x0 - f0 / fp0;
+    }
+
     if (x_newton < state->a || x_newton > state->b ||
         x_chord < state->a || x_chord > state->b) {
         return 0;
@@ -219,6 +236,22 @@ static int run_combined_iteration(double (*func)(double),
     stats->f_calls += 2;
     if (!isfinite(f_newton) || !isfinite(f_chord)) {
         return 0;
+    }
+
+    if (f_newton * f_chord > 0.0) {
+        double x_best = fabs(f_newton) <= fabs(f_chord) ? x_newton : x_chord;
+        double f_best = fabs(f_newton) <= fabs(f_chord) ? f_newton : f_chord;
+
+        if (state->fa * f_best <= 0.0) {
+            state->b = x_best;
+            state->fb = f_best;
+        } else if (state->fb * f_best <= 0.0) {
+            state->a = x_best;
+            state->fa = f_best;
+        } else {
+            return 0;
+        }
+        return 1;
     }
 
     if (x_newton <= x_chord) {

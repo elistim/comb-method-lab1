@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include "scientific_format.h"
 #include "tasks/task_6_2/khaletsky.h"
 
 #define EPS_PIVOT 1e-12
@@ -27,7 +28,8 @@ void print_matrix_scientific(const char *title,
     printf("%s\n", title);
     for (i = 0; i < KHALETSKY_N; i++) {
         for (j = 0; j < KHALETSKY_N; j++) {
-            printf("%13.6e ", m[i][j]);
+            print_number_power10(m[i][j], 6);
+            printf("  ");
         }
         printf("\n");
     }

@@ -5,12 +5,13 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "scientific_format.h"
 #include "tasks/task_6_1/task_6_1.h"
 #include "tasks/task_6_1/function_provider_6_1.h"
 #include "tasks/task_6_1/solver_6_1.h"
 
 #define MAX_EXPR_LEN 256
-#define VARIANT_SPLIT_STEP 1.0
+#define VARIANT_SPLIT_STEP 3.3
 
 static double now_seconds(void) {
 #ifdef _WIN32
@@ -93,7 +94,11 @@ int run_task_6_1(void) {
     }
 
     printf("Интервал: [%.3f, %.3f], шаг отделения: %.3f\n", a, b, split_step);
-    printf("Точность: eps1 = %.1e, eps2 = %.1e\n\n", eps1, eps2);
+    printf("Точность: eps1 = ");
+    print_number_power10(eps1, 1);
+    printf(", eps2 = ");
+    print_number_power10(eps2, 1);
+    printf("\n\n");
 
     split_steps = (int)ceil((b - a) / split_step);
     printf("Количество шагов отделения корней: %d\n", split_steps);
@@ -133,18 +138,23 @@ int run_task_6_1(void) {
         printf("  Отрезок: [%.10f, %.10f]\n", intervals[i].left, intervals[i].right);
         if (stats.converged) {
             printf("  ξ = %.12f\n", root);
-            printf("  |f(ξ)| = %.3e\n", stats.residual_abs);
+            printf("  |f(ξ)| = ");
+            print_number_power10(stats.residual_abs, 3);
+            printf("\n");
             printf("  Итерации n = %d\n", stats.iterations);
             printf("  Вычисления функций при уточнении: f=%lu, f'=%lu, f''=%lu\n",
                    stats.f_calls, stats.fp_calls, stats.fpp_calls);
             printf("  Время: %.9f сек\n", elapsed);
             if (isfinite(stats.last_dx)) {
-                printf("  Последний шаг |x_n - x_(n-1)| = %.3e\n",
-                       stats.last_dx);
+                printf("  Последний шаг |x_n - x_(n-1)| = ");
+                print_number_power10(stats.last_dx, 3);
+                printf("\n");
             } else {
                 printf("  Последний шаг |x_n - x_(n-1)| = не требуется\n");
             }
-            printf("  Погрешность по аргументу <= %.3e\n", stats.argument_error);
+            printf("  Погрешность по аргументу <= ");
+            print_number_power10(stats.argument_error, 3);
+            printf("\n");
             if (isfinite(stats.alpha)) {
                 printf("  Параметр сходимости alpha = %.6f\n", stats.alpha);
             } else {

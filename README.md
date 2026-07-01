@@ -21,11 +21,18 @@ You need:
 
 ## Build
 
-If the compiler is already available in your shell:
+The project path contains Cyrillic characters. MinGW cannot compile sources
+from such a path directly, so use the wrapper that creates a temporary ASCII
+junction and adds the MinGW DLL directory to `PATH`:
 
 ```powershell
-cmake --preset default
-cmake --build --preset default
+powershell -ExecutionPolicy Bypass -File .\build.ps1 -Fresh
+```
+
+Subsequent builds:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 ## Windows Examples
@@ -39,7 +46,7 @@ cmake --preset default
 cmake --build --preset default
 ```
 
-### MSYS2 / MinGW
+### MSYS2 / MinGW (manual alternative)
 
 ```powershell
 $env:PATH = "C:\msys64\mingw64\bin;" + $env:PATH

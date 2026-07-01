@@ -4,8 +4,8 @@
         {
             "label": "configure",
             "type": "shell",
-            "command": "cmake",
-            "args": ["--preset", "default"],
+            "command": "powershell",
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\build.ps1", "-Configure", "-Fresh"],
             "group": "build",
             "problemMatcher": [],
             "detail": "Configure the project using CMake."
@@ -13,8 +13,8 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "cmake",
-            "args": ["--build", "--preset", "default"],
+            "command": "powershell",
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\build.ps1"],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -25,8 +25,8 @@
         {
             "label": "clean",
             "type": "shell",
-            "command": "cmake",
-            "args": ["--build", "build", "--target", "clean"],
+            "command": "powershell",
+            "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\build.ps1", "-Clean"],
             "group": "build",
             "problemMatcher": [],
             "detail": "Clean the build artifacts."

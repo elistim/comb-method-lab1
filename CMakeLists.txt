@@ -22,6 +22,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set(SOURCES
     src/main.c
     src/app.c
+    src/scientific_format.c
     src/tasks/task_6_1/task_6_1.c
     src/tasks/task_6_1/expression_6_1.c
     src/tasks/task_6_1/function_provider_6_1.c

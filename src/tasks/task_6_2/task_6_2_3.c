@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include "scientific_format.h"
 #include "tasks/task_6_2/khaletsky.h"
 #include "tasks/task_6_2/task_6_2_3.h"
 
@@ -109,7 +110,9 @@ int run_task_6_2_3(void) {
 
     norm_inf = residual_norm_inf(a, inv_a, r);
     print_matrix_scientific("Погрешность R = A * A^-1 - I =", r);
-    printf("||R||_inf = %.12e\n", norm_inf);
+    printf("max row sum = ");
+    print_number_power10(norm_inf, 12);
+    printf("\n");
 
     return 0;
 }
