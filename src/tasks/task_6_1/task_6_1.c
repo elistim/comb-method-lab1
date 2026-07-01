@@ -11,7 +11,7 @@
 #include "tasks/task_6_1/solver_6_1.h"
 
 #define MAX_EXPR_LEN 256
-#define VARIANT_SPLIT_STEP 3.3
+#define VARIANT_SPLIT_STEP 2.5
 
 static double now_seconds(void) {
 #ifdef _WIN32
