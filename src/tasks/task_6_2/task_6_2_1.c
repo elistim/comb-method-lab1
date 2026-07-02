@@ -9,7 +9,7 @@ static void print_system(const double a[N][N], const double b[N]) {
     int i = 0;
     int j = 0;
 
-    printf("System A*x=b (variant 9):\n");
+    printf("Система A*x=b (вариант 9):\n");
     for (i = 0; i < N; i++) {
         for (j = 0; j < N; j++) {
             printf("%10.2f ", a[i][j]);
@@ -57,9 +57,11 @@ static void calc_residual(const double a[N][N], const double b[N],
     }
 }
 
-static double calc_seidel_q_inf(const double a[N][N]) {
+static double calc_seidel_q_inf(const double a[N][N], double b_out[N][N],
+                                double row_sums_out[N], int *max_row_out) {
     double b_iter[N][N] = {{0.0}};
     double q = 0.0;
+    int max_row = 0;
     int col = 0;
     int i = 0;
     int j = 0;
@@ -80,13 +82,102 @@ static double calc_seidel_q_inf(const double a[N][N]) {
         double row_sum = 0.0;
         for (j = 0; j < N; j++) {
             row_sum += fabs(b_iter[i][j]);
+            if (b_out != NULL) {
+                b_out[i][j] = b_iter[i][j];
+            }
+        }
+        if (row_sums_out != NULL) {
+            row_sums_out[i] = row_sum;
         }
         if (row_sum > q) {
             q = row_sum;
+            max_row = i;
         }
     }
 
+    if (max_row_out != NULL) {
+        *max_row_out = max_row;
+    }
+
     return q;
+}
+
+static void print_seidel_matrix_details(const double a[N][N],
+                                        const double b_iter[N][N],
+                                        const double row_sums[N],
+                                        int max_row, double q) {
+    int i = 0;
+    int j = 0;
+
+    printf("\nРазложение A = (D + L) + U, где:\n");
+    printf("D + L — диагональная и нижняя треугольная части:\n");
+    for (i = 0; i < N; i++) {
+        printf("[");
+        for (j = 0; j < N; j++) {
+            printf("% .6f%s", (j <= i) ? a[i][j] : 0.0,
+                   (j + 1 < N) ? "  " : "");
+        }
+        printf("]\n");
+    }
+
+    printf("U — строго верхняя треугольная часть:\n");
+    for (i = 0; i < N; i++) {
+        printf("[");
+        for (j = 0; j < N; j++) {
+            printf("% .6f%s", (j > i) ? a[i][j] : 0.0,
+                   (j + 1 < N) ? "  " : "");
+        }
+        printf("]\n");
+    }
+
+    printf("Для каждого столбца j решается система (D + L) * B_j = -U_j.\n");
+    printf("Системы для вычисления столбцов B_Seidel:\n");
+    for (j = 0; j < N; j++) {
+        int row = 0;
+        int k = 0;
+        printf("\nСтолбец B_%d:\n", j + 1);
+        for (row = 0; row < N; row++) {
+            printf("  ");
+            for (k = 0; k <= row; k++) {
+                if (k > 0) {
+                    printf(" + ");
+                }
+                printf("%.2f*B_%d%d", a[row][k], k + 1, j + 1);
+            }
+            printf(" = %.2f\n", (j > row) ? -a[row][j] : 0.0);
+        }
+        printf("  Решение столбца: ");
+        for (row = 0; row < N; row++) {
+            printf("B_%d%d=%.6f%s", row + 1, j + 1, b_iter[row][j],
+                   (row + 1 < N) ? ", " : "\n");
+        }
+    }
+
+    printf("\nПолученные столбцы образуют B_Seidel = -(D + L)^(-1) * U:\n");
+    for (i = 0; i < N; i++) {
+        printf("[");
+        for (j = 0; j < N; j++) {
+            printf("% .12f%s", b_iter[i][j], (j + 1 < N) ? "  " : "");
+        }
+        printf("]\n");
+    }
+
+    printf("\nСуммы модулей элементов строк B_Seidel:\n");
+    for (i = 0; i < N; i++) {
+        printf("s_%d = ", i + 1);
+        for (j = 0; j < N; j++) {
+            printf("|%.12f|%s", b_iter[i][j], (j + 1 < N) ? " + " : "");
+        }
+        printf(" = %.12f%s\n", row_sums[i],
+               (i == max_row) ? "  <- максимум" : "");
+    }
+    printf("q = ||B_Seidel||_inf = максимум(s_1, ..., s_%d) = %.12f\n\n", N, q);
+    printf("Пояснение величины q:\n");
+    printf("  q — бесконечная норма итерационной матрицы метода Зейделя.\n");
+    printf("  Условие q < 1 является достаточным условием сходимости и позволяет\n");
+    printf("  использовать оценку погрешности <= q/(1-q) * max|dx|.\n");
+    printf("  При q >= 1 эта оценка неприменима, но это не доказывает расходимость.\n");
+    printf("  В этом случае сходимость контролируется по max|dx| и max|r_i|.\n\n");
 }
 
 static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
@@ -98,7 +189,7 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
     int j = 0;
     double x_prev[N] = {0.0};
     double residual_vec[N] = {0.0};
-    double q = calc_seidel_q_inf(a);
+    double q = calc_seidel_q_inf(a, NULL, NULL, NULL);
 
     for (i = 0; i < N; i++) {
         if (fabs(a[i][i]) < 1e-15) {
@@ -135,7 +226,7 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
             *error_estimate_out = q / (1.0 - q) * max_delta;
         }
 
-        printf("Iteration %4d: [", iter);
+        printf("Итерация %4d: [", iter);
         for (i = 0; i < N; i++) {
             printf("% .10f%s", x[i], (i + 1 < N) ? ", " : "");
         }
@@ -145,11 +236,11 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
         printf(", max|r_i| = ");
         print_number_power10(*residual_out, 12);
         if (isfinite(*error_estimate_out)) {
-            printf(", error_est <= ");
+            printf(", оценка погрешности <= ");
             print_number_power10(*error_estimate_out, 12);
             printf("\n");
         } else {
-            printf(", error_est: q=%.6f >= 1\n", q);
+            printf(", оценка погрешности недоступна: q=%.6f >= 1\n", q);
         }
 
         if (((isfinite(*error_estimate_out) && *error_estimate_out < eps) ||
@@ -184,33 +275,34 @@ int run_task_6_2_1(void) {
     double last_delta = 0.0;
     double error_estimate = NAN;
     double q_inf = 0.0;
+    double b_seidel[N][N] = {{0.0}};
+    double b_row_sums[N] = {0.0};
+    int max_b_row = 0;
     double residual_vec[N] = {0.0};
     double eps = 1e-8;
     int converged = 0;
 
     print_system(a, b);
 
-    printf("Seidel method\n");
-    printf("Enter eps (default 1e-8): ");
+    printf("Метод Зейделя\n");
+    printf("Введите eps (по умолчанию 1e-8): ");
     if (scanf("%lf", &eps) != 1 || eps <= 0.0) {
         eps = 1e-8;
-        printf("Invalid input, using eps = ");
+        printf("Некорректный ввод, используется eps = ");
         print_number_power10(eps, 1);
         printf("\n");
     }
 
     if (!is_strict_diagonal_dominance(a)) {
-        printf("Warning: matrix has no strict diagonal dominance.\n");
-        printf("Seidel convergence is not guaranteed.\n");
+        printf("Предупреждение: матрица не имеет строгого диагонального преобладания.\n");
+        printf("Сходимость метода Зейделя этим условием не гарантируется.\n");
     }
-    q_inf = calc_seidel_q_inf(a);
-    printf("max row sum of B_Seidel = ");
-    print_number_power10(q_inf, 12);
-    printf("\n");
+    q_inf = calc_seidel_q_inf(a, b_seidel, b_row_sums, &max_b_row);
+    print_seidel_matrix_details(a, b_seidel, b_row_sums, max_b_row, q_inf);
     if (q_inf < 1.0) {
-        printf("A posteriori error estimate: q/(1-q)*||x(k)-x(k-1)||_inf\n");
+        printf("Апостериорная оценка: q/(1-q)*||x(k)-x(k-1)||_inf\n");
     } else {
-        printf("A posteriori estimate by ||B||_inf is not applicable because q >= 1.\n");
+        printf("Апостериорная оценка по ||B||_inf неприменима, поскольку q >= 1.\n");
     }
 
     converged = gauss_seidel(a, b, x, eps, max_iter, &iterations, &last_delta,
@@ -218,19 +310,19 @@ int run_task_6_2_1(void) {
 
     calc_residual(a, b, x, residual_vec, &residual_inf_norm);
 
-    printf("\nResult:\n");
+    printf("\nРезультат:\n");
     if (converged) {
-        printf("Converged in %d iterations.\n", iterations);
+        printf("Метод сошёлся за %d итераций.\n", iterations);
     } else {
-        printf("Did not converge in %d iterations.\n", iterations);
+        printf("Метод не сошёлся за %d итераций.\n", iterations);
     }
 
-    printf("Solution x:\n");
+    printf("Решение x:\n");
     for (i = 0; i < N; i++) {
         printf("x%d = %.12f\n", i + 1, x[i]);
     }
 
-    printf("\nResidual vector r = A*x - b:\n");
+    printf("\nВектор невязки r = A*x - b:\n");
     for (i = 0; i < N; i++) {
         printf("r%d = ", i + 1);
         print_number_power10(residual_vec[i], 12);
@@ -239,15 +331,15 @@ int run_task_6_2_1(void) {
 
     printf("max|r_i| = ");
     print_number_power10(residual_inf_norm, 12);
-    printf("\nLast max|x(k)-x(k-1)| = ");
+    printf("\nПоследнее max|x(k)-x(k-1)| = ");
     print_number_power10(last_delta, 12);
     printf("\n");
     if (isfinite(error_estimate)) {
-        printf("Theoretical error estimate <= ");
+        printf("Теоретическая оценка погрешности <= ");
         print_number_power10(error_estimate, 12);
         printf("\n");
     } else {
-        printf("Theoretical error estimate by q/(1-q) is not available.\n");
+        printf("Теоретическая оценка погрешности по q/(1-q) недоступна.\n");
     }
 
     return 0;
