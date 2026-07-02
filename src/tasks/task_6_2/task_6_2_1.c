@@ -57,33 +57,20 @@ static void calc_residual(const double a[N][N], const double b[N],
     }
 }
 
-static double calc_seidel_q_inf(const double a[N][N], double b_out[N][N],
+static double calc_alpha_norm(const double a[N][N], double alpha_out[N][N],
                                 double row_sums_out[N], int *max_row_out) {
-    double b_iter[N][N] = {{0.0}};
     double q = 0.0;
     int max_row = 0;
-    int col = 0;
     int i = 0;
     int j = 0;
-
-    for (col = 0; col < N; col++) {
-        for (i = 0; i < N; i++) {
-            double sum = (col > i) ? -a[i][col] : 0.0;
-
-            for (j = 0; j < i; j++) {
-                sum -= a[i][j] * b_iter[j][col];
-            }
-
-            b_iter[i][col] = sum / a[i][i];
-        }
-    }
 
     for (i = 0; i < N; i++) {
         double row_sum = 0.0;
         for (j = 0; j < N; j++) {
-            row_sum += fabs(b_iter[i][j]);
-            if (b_out != NULL) {
-                b_out[i][j] = b_iter[i][j];
+            double alpha_ij = (i == j) ? 0.0 : -a[i][j] / a[i][i];
+            row_sum += fabs(alpha_ij);
+            if (alpha_out != NULL) {
+                alpha_out[i][j] = alpha_ij;
             }
         }
         if (row_sums_out != NULL) {
@@ -102,78 +89,59 @@ static double calc_seidel_q_inf(const double a[N][N], double b_out[N][N],
     return q;
 }
 
-static void print_seidel_matrix_details(const double a[N][N],
-                                        const double b_iter[N][N],
-                                        const double row_sums[N],
-                                        int max_row, double q) {
+static void print_alpha_details(const double a[N][N], const double b[N],
+                                const double alpha[N][N],
+                                const double row_sums[N],
+                                int max_row, double q) {
     int i = 0;
     int j = 0;
 
-    printf("\nРазложение A = (D + L) + U, где:\n");
-    printf("D + L — диагональная и нижняя треугольная части:\n");
+    printf("\nРасчёт коэффициентов приведённой системы x = beta + alpha*x:\n");
+    printf("Коэффициенты beta_i = b_i / a_ii:\n");
     for (i = 0; i < N; i++) {
-        printf("[");
-        for (j = 0; j < N; j++) {
-            printf("% .6f%s", (j <= i) ? a[i][j] : 0.0,
-                   (j + 1 < N) ? "  " : "");
-        }
-        printf("]\n");
+        printf("beta_%d = %.2f / %.2f = %.12f\n",
+               i + 1, b[i], a[i][i], b[i] / a[i][i]);
     }
 
-    printf("U — строго верхняя треугольная часть:\n");
+    printf("\nКоэффициенты alpha_ij = -a_ij / a_ii при i != j; alpha_ii = 0:\n");
     for (i = 0; i < N; i++) {
-        printf("[");
         for (j = 0; j < N; j++) {
-            printf("% .6f%s", (j > i) ? a[i][j] : 0.0,
-                   (j + 1 < N) ? "  " : "");
-        }
-        printf("]\n");
-    }
-
-    printf("Для каждого столбца j решается система (D + L) * B_j = -U_j.\n");
-    printf("Системы для вычисления столбцов B_Seidel:\n");
-    for (j = 0; j < N; j++) {
-        int row = 0;
-        int k = 0;
-        printf("\nСтолбец B_%d:\n", j + 1);
-        for (row = 0; row < N; row++) {
-            printf("  ");
-            for (k = 0; k <= row; k++) {
-                if (k > 0) {
-                    printf(" + ");
-                }
-                printf("%.2f*B_%d%d", a[row][k], k + 1, j + 1);
+            if (i == j) {
+                printf("alpha_%d%d = 0\n", i + 1, j + 1);
+            } else {
+                printf("alpha_%d%d = -(%.2f) / %.2f = %.12f\n",
+                       i + 1, j + 1, a[i][j], a[i][i], alpha[i][j]);
             }
-            printf(" = %.2f\n", (j > row) ? -a[row][j] : 0.0);
-        }
-        printf("  Решение столбца: ");
-        for (row = 0; row < N; row++) {
-            printf("B_%d%d=%.6f%s", row + 1, j + 1, b_iter[row][j],
-                   (row + 1 < N) ? ", " : "\n");
         }
     }
 
-    printf("\nПолученные столбцы образуют B_Seidel = -(D + L)^(-1) * U:\n");
+    printf("\nПолученная приведённая система:\n");
     for (i = 0; i < N; i++) {
-        printf("[");
+        printf("x_%d = %.12f", i + 1, b[i] / a[i][i]);
         for (j = 0; j < N; j++) {
-            printf("% .12f%s", b_iter[i][j], (j + 1 < N) ? "  " : "");
+            if (j != i) {
+                printf(" + (% .6f)*x_%d", alpha[i][j], j + 1);
+            }
         }
-        printf("]\n");
+        printf("\n");
     }
 
-    printf("\nСуммы модулей элементов строк B_Seidel:\n");
+    printf("\nМатрица коэффициентов alpha:\n");
     for (i = 0; i < N; i++) {
-        printf("s_%d = ", i + 1);
         for (j = 0; j < N; j++) {
-            printf("|%.12f|%s", b_iter[i][j], (j + 1 < N) ? " + " : "");
+            printf("% .9f%s", alpha[i][j], (j + 1 < N) ? "  " : "");
         }
-        printf(" = %.12f%s\n", row_sums[i],
+        printf("\n");
+    }
+
+    printf("\nСуммы модулей коэффициентов по строкам alpha:\n");
+    for (i = 0; i < N; i++) {
+        printf("Строка %d: %.12f%s\n", i + 1, row_sums[i],
                (i == max_row) ? "  <- максимум" : "");
     }
-    printf("q = ||B_Seidel||_inf = максимум(s_1, ..., s_%d) = %.12f\n\n", N, q);
+    printf("q = норма alpha = максимальная сумма = %.12f\n\n", q);
     printf("Пояснение величины q:\n");
-    printf("  q — бесконечная норма итерационной матрицы метода Зейделя.\n");
+    printf("  q — норма матрицы alpha приведённой системы.\n");
     printf("  Условие q < 1 является достаточным условием сходимости и позволяет\n");
     printf("  использовать оценку погрешности <= q/(1-q) * max|dx|.\n");
     printf("  При q >= 1 эта оценка неприменима, но это не доказывает расходимость.\n");
@@ -189,7 +157,7 @@ static int gauss_seidel(const double a[N][N], const double b[N], double x[N],
     int j = 0;
     double x_prev[N] = {0.0};
     double residual_vec[N] = {0.0};
-    double q = calc_seidel_q_inf(a, NULL, NULL, NULL);
+    double q = calc_alpha_norm(a, NULL, NULL, NULL);
 
     for (i = 0; i < N; i++) {
         if (fabs(a[i][i]) < 1e-15) {
@@ -275,9 +243,9 @@ int run_task_6_2_1(void) {
     double last_delta = 0.0;
     double error_estimate = NAN;
     double q_inf = 0.0;
-    double b_seidel[N][N] = {{0.0}};
-    double b_row_sums[N] = {0.0};
-    int max_b_row = 0;
+    double alpha[N][N] = {{0.0}};
+    double alpha_row_sums[N] = {0.0};
+    int max_alpha_row = 0;
     double residual_vec[N] = {0.0};
     double eps = 1e-8;
     int converged = 0;
@@ -297,12 +265,12 @@ int run_task_6_2_1(void) {
         printf("Предупреждение: матрица не имеет строгого диагонального преобладания.\n");
         printf("Сходимость метода Зейделя этим условием не гарантируется.\n");
     }
-    q_inf = calc_seidel_q_inf(a, b_seidel, b_row_sums, &max_b_row);
-    print_seidel_matrix_details(a, b_seidel, b_row_sums, max_b_row, q_inf);
+    q_inf = calc_alpha_norm(a, alpha, alpha_row_sums, &max_alpha_row);
+    print_alpha_details(a, b, alpha, alpha_row_sums, max_alpha_row, q_inf);
     if (q_inf < 1.0) {
         printf("Апостериорная оценка: q/(1-q)*||x(k)-x(k-1)||_inf\n");
     } else {
-        printf("Апостериорная оценка по ||B||_inf неприменима, поскольку q >= 1.\n");
+        printf("Апостериорная оценка по норме alpha неприменима, поскольку q >= 1.\n");
     }
 
     converged = gauss_seidel(a, b, x, eps, max_iter, &iterations, &last_delta,
